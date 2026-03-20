@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 将业务逻辑层组件扫描到容器中 -->
+    <context:component-scan base-package="com.cg.service"/>
+
+    <!-- PropertyPlaceholderConfigurer的主要作用
+         是将配置属性值放到一个properties文件中，
+         在xml文件中使用${key}替换properties文件中的值。 -->
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <!--通过location属性可以设置db.properties文件的地址。 -->
+        <property name="location" value="classpath:db.properties" />
+    </bean>
+
+    <!-- 配置数据源信息，使用了Druid数据库连接池技术 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <!--从db.properties中通过${key}替换指定键的值 -->
+        <property name="driverClassName" value="${jdbc.driver}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+    </bean>
+
+    <!-- SqlSessionFactoryBean是mybatis-spring依赖中的类，
+         通过配置 SqlSessionFactoryBean 来
+         向容器中注入 SqlSessionFactory 对象的 -->
+    <bean id="sqlSessionFactory"
+          class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 关联数据源 -->
+        <property name="dataSource" ref="dataSource" />
+        <!-- 指定Mapper映射文件地址，如果映射文件和Mapper接口所在目录相同，此配置可省略 -->
+        <property name="mapperLocations" value="classpath:mapper/*.xml">
+        </property>
+        <!-- 为实体类型取别名，简化Mapper映射文件中的配置 -->
+        <property name="typeAliasesPackage" value="com.cg.entity">
+        </property>
+        <!--加载MyBatis核心配置文件-->
+        <property name="configLocation" value="classpath:mybatis-config.xml">
+        </property>
+    </bean>
+
+    <!-- MapperScannerConfigurer是mybatis-spring依赖中的类，
+         作用是扫描mapper包下的接口，通过动态代理的方式为接口生成实现类
+         注册到Spring容器中-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 指定MyBatis接口所在的包 -->
+        <property name="basePackage" value="com.cg.mapper" />
+    </bean>
+
+</beans>
